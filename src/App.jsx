@@ -6,9 +6,9 @@ import { v4 as uuidv4 } from 'uuid';
 function App() {
 
   const TODOS = [
-    { id: 1, title: 'Finish react courses', isComplete: false },
-    { id: 2, title: 'Go shopping for christmas gift', isComplete: true },
-    { id: 3, title: 'Prepare the meals', isComplete: false },
+    { id: 1, title: 'Finish react courses', isComplete: false, isEditing: false },
+    { id: 2, title: 'Go shopping for christmas gift', isComplete: true, isEditing: false },
+    { id: 3, title: 'Prepare the meals', isComplete: false, isEditing: false },
   ]
 
   function addTodo(event) {
@@ -37,6 +37,38 @@ function App() {
     setTodoInput(event.target.value)
   }
 
+  function completeTodo(id) {
+    const updatedTodos = todos.map(todo => {
+      if(todo.id === id) { todo.isComplete = !todo.isComplete }
+      return todo
+    })
+    setTodos(updatedTodos)
+  }
+
+  function markAsEditing(id) {
+    const editedTodos = todos.map(todo => {
+      if(todo.id === id) { todo.isEditing = !todo.isEditing }
+      return todo
+    })
+    setTodos(editedTodos)
+  }
+
+  function updateTodo(id, event) {
+    const updatedTodos = todos.map(todo => {
+      if(todo.id === id) { 
+        if(event.target.value.trim().length === 0) { 
+          alert('String must not be empty') 
+          todo.isEditing = false
+          return todo
+        } 
+        todo.title = event.target.value
+        todo.isEditing = false
+      }
+      return todo
+    })
+    setTodos(updatedTodos)
+  }
+
   const [todos, setTodos] = useState(TODOS)
   const [todoInput, setTodoInput] = useState('')
 
@@ -59,9 +91,28 @@ function App() {
           todos.map((todo) => (
             <li className="todo-item-container" key={todo.id}>
               <div className="todo-item">
-                <input type="checkbox" />
-                <span className="todo-item-label">{ todo.title }</span>
-                {/* <input type="text" className="todo-item-input" value="Finish React Series" /> */}
+                <input type="checkbox" onChange={() => completeTodo(todo.id)} checked={todo.isComplete ? true : false} />
+
+                { !todo.isEditing ? (
+                <span 
+                  className={`todo-item-label ${todo.isComplete ? 'line-through' : ''}`}
+                  onDoubleClick={() => { markAsEditing(todo.id) }}
+                >{ todo.title }</span>
+                ) : 
+                (<input type="text" 
+                  className="todo-item-input" 
+                  defaultValue={ todo.title } 
+                  onBlur={(event) => updateTodo(todo.id, event)} 
+                  onKeyDown={(event) => {
+                    if(event.key === 'Enter') { updateTodo(todo.id, event) }
+                    if(event.key === 'Escape') { !markAsEditing(todo.id) }
+                  } 
+                  }
+                  autofocus />)
+                }
+
+                
+                
               </div>
               <button className="x-button" onClick={ () => deleteTodo(todo.id) }>
                 <svg
